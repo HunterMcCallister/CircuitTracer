@@ -70,42 +70,63 @@ public class CircuitBoard {
 		}
 		lineScan.close();
 
-		fileScan.nextLine();
+
 		board = new char[ROWS][COLS];
 
 		int rowCount = 0;
-		int colCount = 0;
 		int oneCount = 0;
 		int twoCount = 0;
 
-		while (fileScan.hasNextLine()) {
-			for(int i = 0; i < rowCount; i++){
-				for(int j = 0; j <colCount; j++){
-					board[i][j] = fileScan.next().charAt(j);
-					if(board[i][j] == START){
+		
+			for (int i = 0; i < ROWS; i++) {
+				if (!fileScan.hasNextLine()) {
+					throw new InvalidFileFormatException("too few rows");
+				}
+				String nextLine = fileScan.nextLine();
+				lineScan = new Scanner(nextLine);
+				int colCount = 0;
+				for (int j = 0; j < COLS; j++) {
+					if (!lineScan.hasNext()) {
+						lineScan.close();
+						throw new InvalidFileFormatException("too few columns");
+					}
+					String scanVarStr = lineScan.next();
+					if (scanVarStr.length() > 1) {
+						lineScan.close();
+						throw new InvalidFileFormatException("too many characters");
+					}
+					char scanVar = scanVarStr.charAt(0);
+					
+					if (ALLOWED_CHARS.indexOf(scanVar) == -1 ){
+					lineScan.close();
+					throw new InvalidFileFormatException("invalid characters");
+					}
+					if (scanVar == START) {
 						oneCount++;
 					}
-					if(board[i][j] == END){
+					if (scanVar == END) {
 						twoCount++;
 					}
 					colCount++;
+					board[i][j] = scanVar;
+				}
+				if (colCount > COLS) {
+					throw new InvalidFileFormatException("too many columns");
 				}
 				rowCount++;
 			}
-			
+
+		
+		if (oneCount != 1) {
+			throw new InvalidFileFormatException("invalid number of 1s: " + oneCount);
 		}
-		if(oneCount != 1){
-			throw new InvalidFileFormatException("too many 1s");
+		if (twoCount != 1) {
+			throw new InvalidFileFormatException("invalid number of 2s");
 		}
-		if(twoCount != 1){
-			throw new InvalidFileFormatException("too many 2s");
+		if (rowCount > ROWS) {
+			throw new InvalidFileFormatException("too many rows");
 		}
-		if (rowCount != ROWS){
-			throw new InvalidFileFormatException("rows to do not match");
-		}
-		if (colCount != COLS){
-			throw new InvalidFileFormatException("cols do not match");
-		}
+		
 
 		fileScan.close();
 
