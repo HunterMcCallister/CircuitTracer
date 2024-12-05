@@ -45,100 +45,90 @@ public class CircuitBoard {
 	 */
 	@SuppressWarnings("resource")
 	public CircuitBoard(String filename) throws FileNotFoundException {
+		
 		Scanner fileScan = new Scanner(new File(filename));
 
-		// TODO: parse the given file to populate the char[][]
-		// throw FileNotFoundException if Scanner cannot read the file
-		// throw InvalidFileFormatException if any issues are encountered while parsing
-		// the file
-
-		Scanner lineScan = new Scanner(fileScan.nextLine().trim());
-
-		// if(!lineScan.hasNextInt()) {
-		// 	throw new InvalidFileFormatException("dimension not valid integer");
-		// }
-
-		if (lineScan.hasNextInt()) {
-			ROWS = lineScan.nextInt(); // replace with initialization statements using values from file
-		} else {
-			throw new InvalidFileFormatException("dimension not valid integer");
+		
+		if (!fileScan.hasNextLine()) {
+			fileScan.close();
+			throw new InvalidFileFormatException("File is empty or missing dimensions.");
 		}
-		if (lineScan.hasNextInt()) {
-			COLS = lineScan.nextInt();
-		} else {
-			throw new InvalidFileFormatException("dimension not valid integer");
+		String[] dimensions = fileScan.nextLine().trim().split("\\s+");
+		if (dimensions.length != 2) {
+			fileScan.close();
+			throw new InvalidFileFormatException("Invalid dimensions format. Expected two integers.");
+		}
+		try {
+			ROWS = Integer.parseInt(dimensions[0]);
+			COLS = Integer.parseInt(dimensions[1]);
+		} catch (NumberFormatException e) {
+			fileScan.close();
+			throw new InvalidFileFormatException("Dimensions must be integers.");
 		}
 
-		if (lineScan.hasNextInt()) {
-			throw new InvalidFileFormatException("too many dimensions");
-		}
-		lineScan.close();
-
+		// Initialize the board
 		board = new char[ROWS][COLS];
 
-		int rowCount = 0;
-		int oneCount = 0;
-		int twoCount = 0;
+		int oneCount = 0; // Count of '1'
+		int twoCount = 0; // Count of '2'
 
+		// Parse the board rows
 		for (int i = 0; i < ROWS; i++) {
 			if (!fileScan.hasNextLine()) {
-				throw new InvalidFileFormatException("too few rows");
+				fileScan.close();
+				throw new InvalidFileFormatException("Too few rows. Expected " + ROWS);
 			}
-			String nextLine = fileScan.nextLine();
-			lineScan = new Scanner(nextLine);
-			String lineLen = nextLine.replaceAll("\\s+", "");
-			if (lineLen.length() != COLS) {
-				lineScan.close();
-				throw new InvalidFileFormatException("invalid number of columns");
-
+			String line = fileScan.nextLine().replaceAll("\\s+", ""); // Remove spaces
+			if (line.length() != COLS) {
+				fileScan.close();
+				throw new InvalidFileFormatException("Invalid number of columns at row " + i + ". Expected " + COLS);
 			}
 
-			int colCount = 0;
+			// Parse each character in the row
 			for (int j = 0; j < COLS; j++) {
-				if (!lineScan.hasNext()) {
-					lineScan.close();
-					throw new InvalidFileFormatException("too few columns");
-				}
-				String scanVarStr = lineScan.next();
-				if (scanVarStr.length() > 1) {
-					lineScan.close();
-					throw new InvalidFileFormatException("too many characters");
-				}
-				char scanVar = scanVarStr.charAt(0);
+				char cell = line.charAt(j);
 
-				if (ALLOWED_CHARS.indexOf(scanVar) == -1) {
-					lineScan.close();
-					throw new InvalidFileFormatException("invalid characters");
+				if (ALLOWED_CHARS.indexOf(cell) == -1) {
+					fileScan.close();
+					throw new InvalidFileFormatException("Invalid character '" + cell + "' at (" + i + ", " + j + ")");
 				}
-				board[i][j] = scanVar;
 
-				if (scanVar == START) {
+				// Set in board
+				board[i][j] = cell;
+
+				// Track the starting and ending points
+				if (cell == START) {
+					if (oneCount > 0) { 
+						fileScan.close();
+						throw new InvalidFileFormatException("Multiple '1' found.");
+					}
+					startingPoint = new Point(i, j);
 					oneCount++;
-				}
-				if (scanVar == END) {
+				} else if (cell == END) {
+					if (twoCount > 0) { 
+						fileScan.close();
+						throw new InvalidFileFormatException("Multiple '2' found.");
+					}
+					endingPoint = new Point(i, j);
 					twoCount++;
 				}
-				colCount++;
-
 			}
-			if (colCount > COLS) {
-				throw new InvalidFileFormatException("too many columns");
-			}
-			rowCount++;
 		}
 
+		// Final checks
+		if (fileScan.hasNextLine()) {
+			fileScan.close();
+			throw new InvalidFileFormatException("Too many rows. Expected " + ROWS);
+		}
 		if (oneCount != 1) {
-			throw new InvalidFileFormatException("invalid number of 1s: " + oneCount);
+			throw new InvalidFileFormatException("Invalid number of '1's: " + oneCount);
 		}
 		if (twoCount != 1) {
-			throw new InvalidFileFormatException("invalid number of 2s");
-		}
-		if (fileScan.hasNextLine()) {
-			throw new InvalidFileFormatException("too many rows");
+			throw new InvalidFileFormatException("Invalid number of '2's: " + twoCount);
 		}
 
+		
 		fileScan.close();
-
 	}
 
 	/**

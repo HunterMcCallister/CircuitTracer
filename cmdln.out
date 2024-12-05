@@ -1,2 +1,4 @@
-Error: Could not find or load main class CircuitTracer
-Caused by: java.lang.ClassNotFoundException: CircuitTracer
+Usage: java CircuitTracer -s|-q -c|-g filename
+ -s for stack or -q for queue
+ -c for console or -g for GUI
+
