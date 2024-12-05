@@ -52,14 +52,18 @@ public class CircuitBoard {
 		// throw InvalidFileFormatException if any issues are encountered while parsing
 		// the file
 
-		Scanner lineScan = new Scanner(fileScan.nextLine());
+		Scanner lineScan = new Scanner(fileScan.nextLine().trim());
 
-		if (lineScan.hasNext()) {
+		// if(!lineScan.hasNextInt()) {
+		// 	throw new InvalidFileFormatException("dimension not valid integer");
+		// }
+
+		if (lineScan.hasNextInt()) {
 			ROWS = lineScan.nextInt(); // replace with initialization statements using values from file
 		} else {
 			throw new InvalidFileFormatException("dimension not valid integer");
 		}
-		if (lineScan.hasNext()) {
+		if (lineScan.hasNextInt()) {
 			COLS = lineScan.nextInt();
 		} else {
 			throw new InvalidFileFormatException("dimension not valid integer");
@@ -70,63 +74,68 @@ public class CircuitBoard {
 		}
 		lineScan.close();
 
-
 		board = new char[ROWS][COLS];
 
 		int rowCount = 0;
 		int oneCount = 0;
 		int twoCount = 0;
 
-		
-			for (int i = 0; i < ROWS; i++) {
-				if (!fileScan.hasNextLine()) {
-					throw new InvalidFileFormatException("too few rows");
-				}
-				String nextLine = fileScan.nextLine();
-				lineScan = new Scanner(nextLine);
-				int colCount = 0;
-				for (int j = 0; j < COLS; j++) {
-					if (!lineScan.hasNext()) {
-						lineScan.close();
-						throw new InvalidFileFormatException("too few columns");
-					}
-					String scanVarStr = lineScan.next();
-					if (scanVarStr.length() > 1) {
-						lineScan.close();
-						throw new InvalidFileFormatException("too many characters");
-					}
-					char scanVar = scanVarStr.charAt(0);
-					
-					if (ALLOWED_CHARS.indexOf(scanVar) == -1 ){
-					lineScan.close();
-					throw new InvalidFileFormatException("invalid characters");
-					}
-					if (scanVar == START) {
-						oneCount++;
-					}
-					if (scanVar == END) {
-						twoCount++;
-					}
-					colCount++;
-					board[i][j] = scanVar;
-				}
-				if (colCount > COLS) {
-					throw new InvalidFileFormatException("too many columns");
-				}
-				rowCount++;
+		for (int i = 0; i < ROWS; i++) {
+			if (!fileScan.hasNextLine()) {
+				throw new InvalidFileFormatException("too few rows");
+			}
+			String nextLine = fileScan.nextLine();
+			lineScan = new Scanner(nextLine);
+			String lineLen = nextLine.replaceAll("\\s+", "");
+			if (lineLen.length() != COLS) {
+				lineScan.close();
+				throw new InvalidFileFormatException("invalid number of columns");
+
 			}
 
-		
+			int colCount = 0;
+			for (int j = 0; j < COLS; j++) {
+				if (!lineScan.hasNext()) {
+					lineScan.close();
+					throw new InvalidFileFormatException("too few columns");
+				}
+				String scanVarStr = lineScan.next();
+				if (scanVarStr.length() > 1) {
+					lineScan.close();
+					throw new InvalidFileFormatException("too many characters");
+				}
+				char scanVar = scanVarStr.charAt(0);
+
+				if (ALLOWED_CHARS.indexOf(scanVar) == -1) {
+					lineScan.close();
+					throw new InvalidFileFormatException("invalid characters");
+				}
+				board[i][j] = scanVar;
+
+				if (scanVar == START) {
+					oneCount++;
+				}
+				if (scanVar == END) {
+					twoCount++;
+				}
+				colCount++;
+
+			}
+			if (colCount > COLS) {
+				throw new InvalidFileFormatException("too many columns");
+			}
+			rowCount++;
+		}
+
 		if (oneCount != 1) {
 			throw new InvalidFileFormatException("invalid number of 1s: " + oneCount);
 		}
 		if (twoCount != 1) {
 			throw new InvalidFileFormatException("invalid number of 2s");
 		}
-		if (rowCount > ROWS) {
+		if (fileScan.hasNextLine()) {
 			throw new InvalidFileFormatException("too many rows");
 		}
-		
 
 		fileScan.close();
 
